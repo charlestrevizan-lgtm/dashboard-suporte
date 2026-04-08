@@ -407,7 +407,10 @@ async function checkPwd(){
   const v = document.getElementById('pwdInput').value;
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(v));
   const hash = Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
-  const HASH = 'e3ca6945384d7f2cc1bc54b949c7ce60ec68cb1e9f459e8f6acaaf5319f255dd';
+  // SHA-256 de 'Time#Rivio2026' — gerado via crypto.subtle
+  const pwdToVerify = 'Time#Rivio2026';
+  const correctBuf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pwdToVerify));
+  const HASH = Array.from(new Uint8Array(correctBuf)).map(b=>b.toString(16).padStart(2,'0')).join('');
   if(hash === HASH){
     document.getElementById('loginOverlay').style.display = 'none';
     sessionStorage.setItem('rivio_auth','1');
