@@ -56,6 +56,28 @@
 </head>
 <body>
 
+<style>
+#loginOverlay{position:fixed;inset:0;background:#f4f4f0;display:flex;align-items:center;justify-content:center;z-index:9999}
+.login-box{background:#fff;border:1px solid #e0dfd8;border-radius:12px;padding:40px 36px;width:340px;text-align:center;box-shadow:0 2px 16px rgba(0,0,0,.06)}
+.login-logo{font-size:20px;font-weight:500;color:#1a1a18;margin-bottom:6px}
+.login-sub{font-size:13px;color:#888;margin-bottom:28px}
+.login-box input{width:100%;padding:10px 14px;border:1px solid #ccc;border-radius:7px;font-size:14px;margin-bottom:12px;outline:none;box-sizing:border-box}
+.login-box input:focus{border-color:#378ADD}
+.login-btn{width:100%;padding:10px;background:#378ADD;color:#fff;border:none;border-radius:7px;font-size:14px;font-weight:500;cursor:pointer}
+.login-btn:hover{background:#185FA5}
+.login-error{color:#A32D2D;font-size:12px;margin-top:10px;display:none}
+</style>
+
+<div id="loginOverlay">
+  <div class="login-box">
+    <div class="login-logo">Dashboard de Suporte</div>
+    <div class="login-sub">Rivio · Equipe de Suporte</div>
+    <input type="password" id="pwdInput" placeholder="Digite a senha" onkeydown="if(event.key==='Enter')checkPwd()"/>
+    <button class="login-btn" onclick="checkPwd()">Entrar</button>
+    <div class="login-error" id="pwdError">Senha incorreta. Tente novamente.</div>
+  </div>
+</div>
+
 <div class="header">
   <h1>Dashboard de Suporte — Horas por Colaborador</h1>
   <div class="header-right">
@@ -164,8 +186,7 @@
 </div>
 
 <script>
-const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSoyiS8aJHqh8tCfP6gK9NmubK5COWmNg31EmSk930a3UFkNxboDXk1SZzKbcnHSHSw18-bEXnNpnU5/pub?gid=1069614949&single=true&output=csv';
-const CSV_URL = 'https://corsproxy.io/?' + encodeURIComponent(SHEET_URL);
+const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSoyiS8aJHqh8tCfP6gK9NmubK5COWmNg31EmSk930a3UFkNxboDXk1SZzKbcnHSHSw18-bEXnNpnU5/pub?gid=1069614949&single=true&output=csv';
 
 const PALETTE = ['#378ADD','#1D9E75','#EF9F27','#D4537E','#7F77DD','#E24B4A','#639922','#D85A30','#185FA5','#0F6E56'];
 const priColors = {'Baixa':'#1D9E75','Urgente':'#E24B4A','Média':'#EF9F27','Alta':'#D4537E'};
@@ -382,7 +403,26 @@ function loadData(){
   });
 }
 
-loadData();
+function checkPwd(){
+  const v = document.getElementById('pwdInput').value;
+  if(v === 'Time#Rivio2026'){
+    document.getElementById('loginOverlay').style.display = 'none';
+    sessionStorage.setItem('rivio_auth','1');
+    loadData();
+  } else {
+    document.getElementById('pwdError').style.display = 'block';
+    document.getElementById('pwdInput').value = '';
+    document.getElementById('pwdInput').focus();
+  }
+}
+
+function init(){
+  if(sessionStorage.getItem('rivio_auth') === '1'){
+    document.getElementById('loginOverlay').style.display = 'none';
+    loadData();
+  }
+}
+init();
 </script>
 </body>
 </html>
