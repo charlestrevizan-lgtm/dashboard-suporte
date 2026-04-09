@@ -216,7 +216,7 @@ function mkChart(id, type, labels, datasets, opts){
   });
 }
 
-function buildGrupo(fD, fA){
+function buildGrupo(fD, fA, fC){
   const anaList = fA ? [fA] : ALL_ANALISTAS;
   const diaKeys = fD ? [fD] : ALL_DIAS;
   const diaLabels = diaKeys.map(fmtD);
@@ -225,6 +225,7 @@ function buildGrupo(fD, fA){
   ALL_ROWS.forEach(r=>{
     if(fA && r[4]!==fA) return;
     if(fD && r[3]!==fD) return;
+    if(fC && r[0]!==fC) return;
     if(matrix[r[4]]) matrix[r[4]][r[3]] = (matrix[r[4]][r[3]]||0) + r[2];
   });
   const datasets = anaList.map((a,i)=>({
@@ -265,9 +266,9 @@ function buildLanc(rows, fD, fA){
   }).join('');
 }
 
-function render(rows, fD, fA){
+function render(rows, fD, fA, fC){
   const total = rows.reduce((s,r)=>s+r[2], 0);
-  buildGrupo(fD, fA);
+  buildGrupo(fD, fA, fC);
   buildLanc(rows, fD, fA);
 
   if(!rows.length){
@@ -345,7 +346,7 @@ function applyFilters(){
   const fD = document.getElementById('fData').value;
   const fA = document.getElementById('fAna').value;
   const fC = document.getElementById('fCli').value;
-  render(ALL_ROWS.filter(r=>(!fD||r[3]===fD)&&(!fA||r[4]===fA)&&(!fC||r[0]===fC)), fD, fA);
+  render(ALL_ROWS.filter(r=>(!fD||r[3]===fD)&&(!fA||r[4]===fA)&&(!fC||r[0]===fC)), fD, fA, fC);
 }
 
 function populateFilters(){
