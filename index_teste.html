@@ -3,26 +3,41 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dashboard de Suporte — Horas por Cliente</title>
+<title>Dashboard de Suporte — Horas</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f4f6f9;color:#1a1d23;min-height:100vh}
+
+/* LOGIN */
+#loginScreen{display:flex;align-items:center;justify-content:center;min-height:100vh;background:#f4f6f9}
+.login-box{background:#fff;border-radius:12px;border:1px solid #e5e7eb;padding:2.5rem 2rem;width:320px;box-shadow:0 4px 24px rgba(0,0,0,.08);text-align:center}
+.login-box h2{font-size:1.1rem;font-weight:600;margin-bottom:.35rem;color:#1a1d23}
+.login-box p{font-size:12px;color:#6b7280;margin-bottom:1.5rem}
+.login-box input{width:100%;padding:.6rem .85rem;border-radius:7px;border:1px solid #d1d5db;font-size:14px;margin-bottom:.85rem;outline:none}
+.login-box input:focus{border-color:#6366f1;box-shadow:0 0 0 2px rgba(99,102,241,.15)}
+.login-box button{width:100%;padding:.65rem;border-radius:7px;background:#6366f1;color:#fff;font-size:14px;font-weight:500;border:none;cursor:pointer}
+.login-box button:hover{background:#4f52d4}
+.login-error{display:none;color:#dc2626;font-size:12px;margin-top:.5rem}
+
+/* DASHBOARD */
+#app{display:none}
 .container{max-width:1200px;margin:0 auto;padding:1.5rem 1rem}
-h1{font-size:1.1rem;font-weight:600;color:#1a1d23;margin-bottom:1.25rem}
-h1 span{font-weight:400;color:#6b7280;font-size:.9rem;margin-left:.5rem}
+.header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem}
+.header h1{font-size:1.1rem;font-weight:600;color:#1a1d23}
+.header h1 span{font-weight:400;color:#6b7280;font-size:.9rem;margin-left:.5rem}
+#lastUpdate{font-size:11px;color:#9ca3af}
+#btnRefresh{font-size:11px;padding:4px 10px;border-radius:5px;border:1px solid #d1d5db;background:#fff;color:#6b7280;cursor:pointer;margin-left:8px}
+#btnRefresh:hover{background:#f3f4f6}
 
 /* FILTROS */
 .filters{display:flex;gap:12px;flex-wrap:wrap;align-items:center;padding:.85rem 1.25rem;background:#fff;border-radius:10px;border:1px solid #e5e7eb;margin-bottom:1.25rem;box-shadow:0 1px 3px rgba(0,0,0,.05)}
 .filter-group{display:flex;align-items:center;gap:6px}
 .filter-group label{font-size:12px;color:#6b7280;font-weight:500;white-space:nowrap}
-.filter-group select{font-size:12px;padding:5px 28px 5px 10px;border-radius:6px;border:1px solid #d1d5db;background:#f9fafb;color:#1a1d23;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;cursor:pointer}
+.filter-group select{font-size:12px;padding:5px 26px 5px 10px;border-radius:6px;border:1px solid #d1d5db;background:#f9fafb url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat right 8px center;appearance:none;color:#1a1d23;cursor:pointer}
 .filter-group select:focus{outline:none;border-color:#6366f1;box-shadow:0 0 0 2px rgba(99,102,241,.15)}
 .filter-sep{width:1px;height:20px;background:#e5e7eb}
-#lastUpdate{font-size:11px;color:#9ca3af;margin-left:auto}
-#btnRefresh{font-size:11px;padding:4px 10px;border-radius:5px;border:1px solid #d1d5db;background:#fff;color:#6b7280;cursor:pointer}
-#btnRefresh:hover{background:#f3f4f6}
 
 /* ALERTA */
 .alert{display:none;padding:.7rem 1rem;background:#fef3c7;border:1px solid #fbbf24;border-radius:8px;font-size:12px;color:#92400e;margin-bottom:1rem}
@@ -34,47 +49,70 @@ h1 span{font-weight:400;color:#6b7280;font-size:.9rem;margin-left:.5rem}
 .metric-value{font-size:22px;font-weight:600;color:#1a1d23}
 .metric-sub{font-size:11px;color:#9ca3af;margin-top:2px}
 
-/* CHARTS */
-.charts-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:1.25rem}
+/* CARDS */
 .card{background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:1rem 1.25rem;box-shadow:0 1px 3px rgba(0,0,0,.04)}
 .card-title{font-size:13px;font-weight:600;color:#1a1d23;margin-bottom:12px}
 
-/* BARRAS AGRUPADAS */
-.grouped-card{background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:1rem 1.25rem;margin-bottom:1.25rem;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+/* LEGENDA */
+.legend{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;font-size:11px;color:#6b7280}
+.leg-item{display:flex;align-items:center;gap:4px}
+.leg-dot{width:10px;height:10px;border-radius:2px;flex-shrink:0}
 
 /* TABELAS */
-.tables-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:1.25rem}
 table{width:100%;border-collapse:collapse;font-size:12px}
 th{font-size:11px;font-weight:600;color:#6b7280;text-align:left;padding:.45rem .6rem;border-bottom:1px solid #e5e7eb;white-space:nowrap}
-td{padding:.45rem .6rem;border-bottom:1px solid #f3f4f6;color:#1a1d23;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px}
+td{padding:.5rem .6rem;border-bottom:1px solid #f3f4f6;color:#1a1d23;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px}
 tr:last-child td{border-bottom:none}
+
+/* BADGES */
 .badge{font-size:10px;padding:2px 7px;border-radius:4px;font-weight:500}
 .b-red{background:#fee2e2;color:#991b1b}
 .b-amber{background:#fef3c7;color:#92400e}
 .b-green{background:#d1fae5;color:#065f46}
+.b-purple{background:#ede9fe;color:#5b21b6}
+
+/* BARRA DE PROGRESSO */
 .bar-bg{background:#f3f4f6;border-radius:3px;height:6px;width:80px;display:inline-block;vertical-align:middle}
 .bar-fill{height:6px;border-radius:3px;display:inline-block}
 
 /* LANÇAMENTOS */
-.lancamentos-card{background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:1rem 1.25rem;margin-bottom:1.25rem;box-shadow:0 1px 3px rgba(0,0,0,.04)}
-.lancamentos-card table td{max-width:260px;white-space:normal;line-height:1.3}
 .tag{font-size:10px;padding:1px 6px;border-radius:4px;background:#ede9fe;color:#5b21b6;font-weight:500}
+.lanc-desc{max-width:260px;white-space:normal;line-height:1.35}
 
-/* LOADING / ERRO */
-.loading{text-align:center;padding:3rem;color:#6b7280;font-size:14px}
+/* ERRO */
 #errorBox{display:none;padding:.85rem 1rem;background:#fee2e2;border:1px solid #fca5a5;border-radius:8px;font-size:12px;color:#991b1b;margin-bottom:1rem}
 
 @media(max-width:700px){
   .metrics{grid-template-columns:repeat(2,1fr)}
   .charts-row,.tables-row{grid-template-columns:1fr}
   .filters{gap:8px}
-  #lastUpdate{display:none}
 }
 </style>
 </head>
 <body>
+
+<!-- TELA DE LOGIN -->
+<div id="loginScreen">
+  <div class="login-box">
+    <h2>📊 Dashboard de Suporte</h2>
+    <p>Digite a senha para acessar</p>
+    <input type="password" id="pwdInput" placeholder="Senha" onkeydown="if(event.key==='Enter')checkPwd()">
+    <button onclick="checkPwd()">Entrar</button>
+    <div class="login-error" id="loginError">Senha incorreta. Tente novamente.</div>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="app">
 <div class="container">
-  <h1>Dashboard de Suporte <span>Horas por Cliente &amp; Colaborador</span></h1>
+
+  <div class="header">
+    <h1>Dashboard de Suporte <span>Horas por Cliente &amp; Colaborador</span></h1>
+    <div>
+      <span id="lastUpdate">—</span>
+      <button id="btnRefresh" onclick="loadData()">⟳ Atualizar</button>
+    </div>
+  </div>
 
   <!-- FILTROS -->
   <div class="filters">
@@ -98,8 +136,6 @@ tr:last-child td{border-bottom:none}
         <option value="">Todos os clientes</option>
       </select>
     </div>
-    <span id="lastUpdate">—</span>
-    <button id="btnRefresh" onclick="loadData()">⟳ Atualizar</button>
   </div>
 
   <div id="errorBox"></div>
@@ -129,35 +165,44 @@ tr:last-child td{border-bottom:none}
     </div>
   </div>
 
-  <!-- GRÁFICOS PIZZA -->
-  <div class="charts-row">
+  <!-- 1. BARRAS AGRUPADAS (analista por dia) -->
+  <div class="card" style="margin-bottom:1.25rem">
+    <div class="card-title">Horas por analista por dia</div>
+    <div class="legend" id="legGrupo"></div>
+    <div style="position:relative;height:300px">
+      <canvas id="chartGrupo"></canvas>
+    </div>
+  </div>
+
+  <!-- 2. HORAS POR CLIENTE + TIPO DE PROBLEMA -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:1.25rem" class="charts-row">
     <div class="card">
       <div class="card-title">Horas por cliente</div>
-      <div style="position:relative;height:220px"><canvas id="chartCli"></canvas></div>
+      <div class="legend" id="legCli"></div>
+      <div style="position:relative;height:240px">
+        <canvas id="chartCli"></canvas>
+      </div>
     </div>
     <div class="card">
-      <div class="card-title">Horas por analista</div>
-      <div style="position:relative;height:220px"><canvas id="chartAna"></canvas></div>
+      <div class="card-title">Tipo de problema</div>
+      <div class="legend" id="legTipo"></div>
+      <div style="position:relative;height:240px">
+        <canvas id="chartTipo"></canvas>
+      </div>
     </div>
   </div>
 
-  <!-- GRÁFICO BARRAS AGRUPADAS por dia -->
-  <div class="grouped-card">
-    <div class="card-title">Horas por analista por dia</div>
-    <div style="position:relative;height:280px"><canvas id="chartGrupo"></canvas></div>
-  </div>
-
-  <!-- TABELAS -->
-  <div class="tables-row">
+  <!-- 3. TABELAS: CLIENTES + ANALISTAS -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:1.25rem" class="tables-row">
     <div class="card">
       <div class="card-title">Clientes — detalhamento</div>
       <table>
-        <thead><tr><th>Cliente</th><th>Horas</th><th>%</th><th>Tickets</th><th>Analistas</th><th></th></tr></thead>
+        <thead><tr><th>Cliente</th><th>Horas</th><th>%</th><th>Tickets</th><th>Risco</th><th></th></tr></thead>
         <tbody id="tCli"></tbody>
       </table>
     </div>
     <div class="card">
-      <div class="card-title">Analistas — carga de trabalho</div>
+      <div class="card-title">Analistas — carga</div>
       <table>
         <thead><tr><th>Analista</th><th>Horas</th><th>%</th><th>Status</th><th></th></tr></thead>
         <tbody id="tAna"></tbody>
@@ -165,51 +210,76 @@ tr:last-child td{border-bottom:none}
     </div>
   </div>
 
-  <!-- LANÇAMENTOS DETALHADOS -->
-  <div class="lancamentos-card" id="lancamentosSection">
-    <div class="card-title" id="lancamentosTitle">Todos os lançamentos</div>
-    <table>
-      <thead>
-        <tr>
-          <th>Data</th><th>Analista</th><th>Cliente</th><th>Ticket</th>
-          <th>Horas</th><th>Tipo</th><th>Prioridade</th><th>Descrição</th>
-        </tr>
-      </thead>
-      <tbody id="tLanc"></tbody>
-    </table>
+  <!-- 4. LANÇAMENTOS DETALHADOS -->
+  <div class="card" style="margin-bottom:1.25rem">
+    <div class="card-title" id="lancTitle">Todos os lançamentos</div>
+    <div style="overflow-x:auto">
+      <table>
+        <thead>
+          <tr>
+            <th>Data</th><th>Analista</th><th>Cliente</th><th>Ticket</th>
+            <th>Horas</th><th>Tipo</th><th>Prioridade</th><th style="min-width:200px">Descrição</th>
+          </tr>
+        </thead>
+        <tbody id="tLanc"></tbody>
+      </table>
+    </div>
   </div>
-</div>
+
+</div><!-- /container -->
+</div><!-- /app -->
 
 <script>
+// ── SENHA ──────────────────────────────────────────────────────────────────
+const CORRECT_HASH = '4e0a9e31d67af19be3ff9db6bba1e56cdd26d4c37d476d3ddb3ac5b14c5e14b4';
+// senha padrão: lgtm2025
+
+async function sha256(msg){
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(msg));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+async function checkPwd(){
+  const v = document.getElementById('pwdInput').value;
+  const h = await sha256(v);
+  if(h === CORRECT_HASH){
+    document.getElementById('loginScreen').style.display='none';
+    document.getElementById('app').style.display='block';
+    loadData();
+  } else {
+    document.getElementById('loginError').style.display='block';
+    document.getElementById('pwdInput').value='';
+  }
+}
+
+// ── CONSTANTES ─────────────────────────────────────────────────────────────
 const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSoyiS8aJHqh8tCfP6gK9NmubK5COWmNg31EmSk930a3UFkNxboDXk1SZzKbcnHSHSw18-bEXnNpnU5/pub?gid=1069614949&single=true&output=csv';
 
-const PALETTE = ['#6366f1','#10b981','#f59e0b','#ef4444','#3b82f6','#8b5cf6','#ec4899','#14b8a6','#f97316','#84cc16','#06b6d4','#a855f7'];
+const PALETTE = ['#6366f1','#10b981','#f59e0b','#ef4444','#3b82f6','#8b5cf6','#ec4899','#14b8a6','#f97316','#84cc16','#06b6d4','#a855f7','#eab308'];
 
-let ALL_ROWS = [];
-let ALL_DIAS = [];
-let ALL_ANALISTAS = [];
-let ALL_CLIENTES = [];
-let chartCli, chartAna, chartGrupo;
+let ALL_ROWS = [], ALL_DIAS = [], ALL_ANALISTAS = [], ALL_CLIENTES = [];
+let chartGrupo, chartCli, chartTipo;
 
+// ── HELPERS ─────────────────────────────────────────────────────────────────
 function parseH(v){ return parseFloat((v||'0').replace(',','.')) || 0; }
 function fmt(h){ return h.toFixed(1)+'h'; }
-function fmtD(d){ if(!d) return d; const p=d.split('-'); return p.length===3?p[2]+'/'+p[1]+'/'+p[0]:d; }
-
-function barHtml(pct, color){
+function fmtD(d){ if(!d) return d; const p=d.split('-'); return p.length===3?`${p[2]}/${p[1]}/${p[0]}`:d; }
+function barHtml(pct,color){
   return `<div class="bar-bg"><div class="bar-fill" style="width:${Math.min(pct,100)}%;background:${color}"></div></div>`;
 }
 
+// ── POPULAR FILTROS ──────────────────────────────────────────────────────────
 function populateFilters(){
-  const fData = document.getElementById('fData');
-  const fAna  = document.getElementById('fAna');
-  const fCli  = document.getElementById('fCli');
-  const curD = fData.value, curA = fAna.value, curC = fCli.value;
+  const fData=document.getElementById('fData');
+  const fAna=document.getElementById('fAna');
+  const fCli=document.getElementById('fCli');
+  const [curD,curA,curC]=[fData.value,fAna.value,fCli.value];
 
-  fData.innerHTML = '<option value="">Todos os dias</option>' +
+  fData.innerHTML = '<option value="">Todos os dias</option>'+
     ALL_DIAS.map(d=>`<option value="${d}">${fmtD(d)}</option>`).join('');
-  fAna.innerHTML = '<option value="">Todos os analistas</option>' +
+  fAna.innerHTML = '<option value="">Todos os analistas</option>'+
     ALL_ANALISTAS.map(a=>`<option value="${a}">${a}</option>`).join('');
-  fCli.innerHTML = '<option value="">Todos os clientes</option>' +
+  fCli.innerHTML = '<option value="">Todos os clientes</option>'+
     ALL_CLIENTES.map(c=>`<option value="${c}">${c}</option>`).join('');
 
   if(curD) fData.value=curD;
@@ -217,90 +287,144 @@ function populateFilters(){
   if(curC) fCli.value=curC;
 }
 
+// ── RENDER ───────────────────────────────────────────────────────────────────
 function render(rows){
-  const total = rows.reduce((s,r)=>s+r._horas,0);
-  const fAna = document.getElementById('fAna').value;
-  const fCli = document.getElementById('fCli').value;
+  const total = rows.reduce((s,r)=>s+r._horas, 0);
   const fData = document.getElementById('fData').value;
+  const fAna  = document.getElementById('fAna').value;
+  const fCli  = document.getElementById('fCli').value;
 
   // Métricas
-  document.getElementById('mTotal').textContent = fmt(total);
+  document.getElementById('mTotal').textContent   = fmt(total);
   document.getElementById('mTickets').textContent = rows.length;
-  document.getElementById('mClientes').textContent = new Set(rows.map(r=>r['Cliente (Organização)'])).size;
-  document.getElementById('mAnalistas').textContent = new Set(rows.map(r=>r['Analista'])).size;
+  document.getElementById('mClientes').textContent= new Set(rows.map(r=>r['Cliente (Organização)'])).size;
+  document.getElementById('mAnalistas').textContent= new Set(rows.map(r=>r['Analista'])).size;
   document.getElementById('mPeriodo').textContent = fData ? fmtD(fData) : 'período completo';
 
-  // Alerta de gargalo
-  const cliMap = {};
-  rows.forEach(r=>{ const c=r['Cliente (Organização)']; cliMap[c]=(cliMap[c]||0)+r._horas; });
-  const topCli = Object.entries(cliMap).sort((a,b)=>b[1]-a[1])[0];
+  // Alerta gargalo
+  const cliTot = {};
+  rows.forEach(r=>{ const c=r['Cliente (Organização)']; cliTot[c]=(cliTot[c]||0)+r._horas; });
+  const topCli = Object.entries(cliTot).sort((a,b)=>b[1]-a[1])[0];
   const alertBox = document.getElementById('alertBox');
   if(topCli && total>0 && topCli[1]/total>0.30){
     alertBox.style.display='block';
     alertBox.innerHTML=`⚠️ <strong>${topCli[0]}</strong> concentra ${Math.round(topCli[1]/total*100)}% das horas no período filtrado.`;
   } else { alertBox.style.display='none'; }
 
-  // Gráfico pizza clientes
-  const cliEntries = Object.entries(cliMap).sort((a,b)=>b[1]-a[1]);
-  updatePie('chartCli', chartCli,
-    cliEntries.map(x=>x[0]),
-    cliEntries.map(x=>x[1]),
-    (c)=>{ chartCli=c; }
-  );
+  // ── 1. BARRAS AGRUPADAS: analista × dia ──────────────────────────────────
+  const dias  = [...new Set(rows.map(r=>r['Data Apontamento']).filter(Boolean))].sort();
+  const anas  = [...new Set(rows.map(r=>r['Analista']).filter(Boolean))].sort();
 
-  // Gráfico pizza analistas
-  const anaMap = {};
-  rows.forEach(r=>{ const a=r['Analista']; anaMap[a]=(anaMap[a]||0)+r._horas; });
-  const anaEntries = Object.entries(anaMap).sort((a,b)=>b[1]-a[1]);
-  updatePie('chartAna', chartAna,
-    anaEntries.map(x=>x[0]),
-    anaEntries.map(x=>x[1]),
-    (c)=>{ chartAna=c; }
-  );
-
-  // Gráfico barras agrupadas por dia x analista
-  const dias = [...new Set(rows.map(r=>r['Data Apontamento']).filter(Boolean))].sort();
-  const anas = [...new Set(rows.map(r=>r['Analista']).filter(Boolean))].sort();
   const datasets = anas.map((ana,i)=>({
     label: ana,
-    data: dias.map(d=>{ const s=rows.filter(r=>r['Analista']===ana&&r['Data Apontamento']===d).reduce((s,r)=>s+r._horas,0); return Math.round(s*100)/100; }),
+    data: dias.map(d=>
+      Math.round(rows.filter(r=>r['Analista']===ana&&r['Data Apontamento']===d)
+        .reduce((s,r)=>s+r._horas,0)*100)/100
+    ),
     backgroundColor: PALETTE[i%PALETTE.length],
     borderRadius: 4,
     borderSkipped: false
   }));
 
+  // legenda
+  document.getElementById('legGrupo').innerHTML = anas.map((a,i)=>
+    `<span class="leg-item"><span class="leg-dot" style="background:${PALETTE[i%PALETTE.length]}"></span>${a}</span>`
+  ).join('');
+
   if(chartGrupo){ chartGrupo.destroy(); chartGrupo=null; }
-  const ctx3 = document.getElementById('chartGrupo').getContext('2d');
-  chartGrupo = new Chart(ctx3,{
+  chartGrupo = new Chart(document.getElementById('chartGrupo'),{
     type:'bar',
     data:{ labels: dias.map(fmtD), datasets },
     options:{
       responsive:true, maintainAspectRatio:false,
-      plugins:{ legend:{ position:'bottom', labels:{ font:{size:10}, boxWidth:10, padding:8 } } },
+      plugins:{ legend:{ display:false } },
       scales:{
         x:{ grid:{display:false}, ticks:{font:{size:10}} },
-        y:{ beginAtZero:true, grid:{color:'#f3f4f6'}, ticks:{font:{size:10}, callback:v=>v+'h'} }
+        y:{ beginAtZero:true, max:15, grid:{color:'#f0f0f0'},
+            ticks:{font:{size:10}, callback:v=>v+'h'} }
       }
     }
   });
 
-  // Tabela clientes
+  // ── 2. HORAS POR CLIENTE (barras horizontais) ────────────────────────────
+  const cliEntries = Object.entries(cliTot).sort((a,b)=>b[1]-a[1]);
+
+  document.getElementById('legCli').innerHTML = cliEntries.map((x,i)=>
+    `<span class="leg-item"><span class="leg-dot" style="background:${PALETTE[i%PALETTE.length]}"></span>${x[0]}</span>`
+  ).join('');
+
+  if(chartCli){ chartCli.destroy(); chartCli=null; }
+  chartCli = new Chart(document.getElementById('chartCli'),{
+    type:'bar',
+    data:{
+      labels: cliEntries.map(x=>x[0]),
+      datasets:[{
+        data: cliEntries.map(x=>x[1]),
+        backgroundColor: cliEntries.map((_,i)=>PALETTE[i%PALETTE.length]),
+        borderRadius:4, borderSkipped:false
+      }]
+    },
+    options:{
+      indexAxis:'y',
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false}, tooltip:{callbacks:{label:c=>` ${c.parsed.x.toFixed(1)}h`}} },
+      scales:{
+        x:{ beginAtZero:true, grid:{color:'#f0f0f0'}, ticks:{font:{size:10},callback:v=>v+'h'} },
+        y:{ grid:{display:false}, ticks:{font:{size:10}} }
+      }
+    }
+  });
+
+  // ── 3. TIPO DE PROBLEMA (rosca) ──────────────────────────────────────────
+  const tipoTot = {};
+  rows.forEach(r=>{ const t=r['Tipo de Problema']||'Outros'; tipoTot[t]=(tipoTot[t]||0)+r._horas; });
+  const tipoEntries = Object.entries(tipoTot).sort((a,b)=>b[1]-a[1]);
+
+  document.getElementById('legTipo').innerHTML = tipoEntries.map((x,i)=>
+    `<span class="leg-item"><span class="leg-dot" style="background:${PALETTE[i%PALETTE.length]}"></span>${x[0]}</span>`
+  ).join('');
+
+  if(chartTipo){ chartTipo.destroy(); chartTipo=null; }
+  chartTipo = new Chart(document.getElementById('chartTipo'),{
+    type:'doughnut',
+    data:{
+      labels: tipoEntries.map(x=>x[0]),
+      datasets:[{
+        data: tipoEntries.map(x=>x[1]),
+        backgroundColor: tipoEntries.map((_,i)=>PALETTE[i%PALETTE.length]),
+        borderWidth:2, borderColor:'#fff'
+      }]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{ display:false },
+        tooltip:{ callbacks:{ label:c=>` ${c.parsed.toFixed(1)}h` } }
+      }
+    }
+  });
+
+  // ── 4. TABELA CLIENTES ───────────────────────────────────────────────────
   document.getElementById('tCli').innerHTML = cliEntries.map((x,i)=>{
     const pct = total>0?Math.round(x[1]/total*100):0;
-    const tickets = new Set(rows.filter(r=>r['Cliente (Organização)']===x[0]).map(r=>r['Ticket'])).size;
-    const anas_cli = new Set(rows.filter(r=>r['Cliente (Organização)']===x[0]).map(r=>r['Analista'])).size;
+    const tks = new Set(rows.filter(r=>r['Cliente (Organização)']===x[0]).map(r=>r['Ticket'])).size;
     const col = pct>=30?'#ef4444':pct>=15?'#f59e0b':'#10b981';
+    const badge = pct>=30?'<span class="badge b-red">alto</span>':pct>=15?'<span class="badge b-amber">médio</span>':'<span class="badge b-green">baixo</span>';
     return `<tr>
       <td title="${x[0]}">${x[0]}</td>
       <td><strong>${fmt(x[1])}</strong></td>
       <td>${pct}%</td>
-      <td>${tickets}</td>
-      <td>${anas_cli}</td>
+      <td>${tks}</td>
+      <td>${badge}</td>
       <td>${barHtml(pct,col)}</td>
     </tr>`;
   }).join('');
 
-  // Tabela analistas
+  // ── 5. TABELA ANALISTAS ──────────────────────────────────────────────────
+  const anaTot = {};
+  rows.forEach(r=>{ const a=r['Analista']; anaTot[a]=(anaTot[a]||0)+r._horas; });
+  const anaEntries = Object.entries(anaTot).sort((a,b)=>b[1]-a[1]);
+
   document.getElementById('tAna').innerHTML = anaEntries.map(x=>{
     const pct = total>0?Math.round(x[1]/total*100):0;
     const col = pct>=30?'#ef4444':pct>=20?'#f59e0b':'#10b981';
@@ -314,85 +438,57 @@ function render(rows){
     </tr>`;
   }).join('');
 
-  // Lançamentos detalhados
-  const activeFilter = fAna || fCli || fData;
+  // ── 6. LANÇAMENTOS ───────────────────────────────────────────────────────
   let titulo = 'Todos os lançamentos';
   if(fAna && fCli) titulo = `Lançamentos — ${fAna} / ${fCli}`;
   else if(fAna) titulo = `Lançamentos — ${fAna}`;
   else if(fCli) titulo = `Lançamentos — ${fCli}`;
   else if(fData) titulo = `Lançamentos — ${fmtD(fData)}`;
-  document.getElementById('lancamentosTitle').textContent = titulo;
+  document.getElementById('lancTitle').textContent = titulo;
 
-  document.getElementById('tLanc').innerHTML = rows.slice(0,200).map(r=>{
+  const priClass = {'Alta':'b-red','Urgente':'b-red','Média':'b-amber','Baixa':'b-green'};
+  document.getElementById('tLanc').innerHTML = rows.slice(0,300).map(r=>{
     const pri = r['Prioridade']||'';
-    const priBadge = pri==='Alta'?'b-red':pri==='Média'?'b-amber':'b-green';
     return `<tr>
       <td>${fmtD(r['Data Apontamento'])}</td>
       <td>${r['Analista']}</td>
       <td title="${r['Cliente (Organização)']}">${r['Cliente (Organização)']}</td>
       <td>${r['Ticket']||'—'}</td>
       <td><strong>${fmt(r._horas)}</strong></td>
-      <td><span class="tag">${r['Tipo de Problema']||'—'}</span></td>
-      <td>${pri?`<span class="badge ${priBadge}">${pri}</span>`:'-'}</td>
-      <td title="${r['Descrição da Ação']||''}">${(r['Descrição da Ação']||'').slice(0,80)}${(r['Descrição da Ação']||'').length>80?'…':''}</td>
+      <td><span class="tag">${(r['Tipo de Problema']||'—').replace('Solicitação - ','').replace('Problema - ','')}</span></td>
+      <td>${pri?`<span class="badge ${priClass[pri]||'b-green'}">${pri}</span>`:'-'}</td>
+      <td class="lanc-desc" title="${r['Descrição da Ação']||''}">${(r['Descrição da Ação']||'').slice(0,100)}${(r['Descrição da Ação']||'').length>100?'…':''}</td>
     </tr>`;
   }).join('');
 }
 
-function updatePie(id, existing, labels, data, setter){
-  if(existing){ existing.destroy(); }
-  const ctx = document.getElementById(id).getContext('2d');
-  const chart = new Chart(ctx,{
-    type:'doughnut',
-    data:{
-      labels,
-      datasets:[{
-        data,
-        backgroundColor: labels.map((_,i)=>PALETTE[i%PALETTE.length]),
-        borderWidth:2,
-        borderColor:'#fff'
-      }]
-    },
-    options:{
-      responsive:true, maintainAspectRatio:false,
-      plugins:{
-        legend:{ position:'right', labels:{ font:{size:10}, boxWidth:10, padding:6 } },
-        tooltip:{ callbacks:{ label: ctx=>` ${ctx.parsed.toFixed(1)}h` } }
-      }
-    }
-  });
-  setter(chart);
-}
-
+// ── APLICAR FILTROS ──────────────────────────────────────────────────────────
 function applyFilters(){
   const fData = document.getElementById('fData').value;
   const fAna  = document.getElementById('fAna').value;
   const fCli  = document.getElementById('fCli').value;
-
-  let filtered = ALL_ROWS.filter(r=>
-    (!fData || r['Data Apontamento'] === fData) &&
-    (!fAna  || r['Analista'] === fAna) &&
-    (!fCli  || r['Cliente (Organização)'] === fCli)
+  const filtered = ALL_ROWS.filter(r=>
+    (!fData || r['Data Apontamento']===fData) &&
+    (!fAna  || r['Analista']===fAna) &&
+    (!fCli  || r['Cliente (Organização)']===fCli)
   );
-
   render(filtered);
 }
 
+// ── CARREGAR DADOS ───────────────────────────────────────────────────────────
 function loadData(){
-  document.getElementById('lastUpdate').textContent = 'Carregando...';
-  document.getElementById('errorBox').style.display = 'none';
+  document.getElementById('lastUpdate').textContent='Carregando...';
+  document.getElementById('errorBox').style.display='none';
 
-  Papa.parse(CSV_URL, {
-    download: true,
-    header: true,
-    skipEmptyLines: true,
+  Papa.parse(CSV_URL,{
+    download:true, header:true, skipEmptyLines:true,
     complete(res){
       ALL_ROWS = res.data.map(r=>({
         ...r,
         _horas: parseH(r['Horas Decimais']),
-        'Analista': (r['Analista']||'').trim(),
+        'Analista':              (r['Analista']||'').trim(),
         'Cliente (Organização)': (r['Cliente (Organização)']||'').trim(),
-        'Data Apontamento': (r['Data Apontamento']||'').trim()
+        'Data Apontamento':      (r['Data Apontamento']||'').trim()
       })).filter(r=>r['Data Apontamento']);
 
       ALL_DIAS      = [...new Set(ALL_ROWS.map(r=>r['Data Apontamento']).filter(Boolean))].sort();
@@ -408,15 +504,13 @@ function loadData(){
       applyFilters();
     },
     error(){
-      document.getElementById('lastUpdate').textContent = 'Erro ao carregar';
-      const eb = document.getElementById('errorBox');
+      document.getElementById('lastUpdate').textContent='Erro ao carregar';
+      const eb=document.getElementById('errorBox');
       eb.style.display='block';
-      eb.innerHTML = '<strong>Erro ao carregar dados.</strong> Verifique se a planilha está publicada publicamente em <em>Arquivo → Compartilhar → Publicar na web</em>.';
+      eb.innerHTML='<strong>Erro ao carregar dados.</strong> Verifique se a planilha está publicada em <em>Arquivo → Compartilhar → Publicar na web</em>.';
     }
   });
 }
-
-loadData();
 </script>
 </body>
 </html>
