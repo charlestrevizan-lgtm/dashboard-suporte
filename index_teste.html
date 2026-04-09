@@ -456,34 +456,42 @@ function gerarPDF(nomeCliente, rowsAtual){
   });
   y += 4;
 
-  // ── TABELA DE LANÇAMENTOS ─────────────────────────────────────────────────
+  // ── TABELA DE TICKETS (agrupado) ──────────────────────────────────────────
   doc.setFontSize(11);
   doc.setFont('helvetica','bold');
   doc.setTextColor(30,30,30);
-  doc.text('Lançamentos detalhados', 14, y);
+  doc.text('Tickets atendidos', 14, y);
   y += 4;
 
-  const lancRows = [...rowsCli]
-    .sort((a,b)=>a[3].localeCompare(b[3])||a[4].localeCompare(b[4]))
-    .map(r=>[
-      fmtD(r[3]),
-      r[4],
-      `#${r[1]}`,
-      fmt(r[2]),
-      (r[5]||'').slice(0,60) + ((r[5]||'').length>60?'…':'')
+  // Agrupar por ticket: somar horas, coletar analistas e tipo
+  const ticketMap = {};
+  rowsCli.forEach(r=>{
+    const tk = r[1]||'—';
+    if(!ticketMap[tk]) ticketMap[tk] = { ticket:tk, horas:0, analistas:new Set(), tipo:r[6]||'' };
+    ticketMap[tk].horas += r[2];
+    ticketMap[tk].analistas.add(r[4]);
+  });
+
+  const ticketRows = Object.values(ticketMap)
+    .sort((a,b)=>b.horas-a.horas)
+    .map(t=>[
+      `#${t.ticket}`,
+      t.tipo,
+      [...t.analistas].join(', '),
+      fmt(t.horas)
     ]);
 
   doc.autoTable({
     startY: y,
-    head: [['Data','Analista','Ticket','Horas','Descrição']],
-    body: lancRows,
+    head: [['Ticket','Tipo','Analista(s)','Total de horas']],
+    body: ticketRows,
     theme: 'grid',
     styles: { fontSize:8, cellPadding:2.5, textColor:[30,30,30], lineColor:[220,220,216], lineWidth:0.3 },
     headStyles: { fillColor:[55,138,221], textColor:255, fontStyle:'bold', fontSize:8 },
     alternateRowStyles: { fillColor:[249,249,246] },
     columnStyles: {
-      0:{cellWidth:18}, 1:{cellWidth:36}, 2:{cellWidth:14},
-      3:{cellWidth:14, halign:'right'}, 4:{cellWidth:'auto'}
+      0:{cellWidth:20}, 1:{cellWidth:55}, 2:{cellWidth:'auto'},
+      3:{cellWidth:28, halign:'right'}
     },
     margin: {left:14, right:14}
   });
